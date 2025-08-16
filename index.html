@@ -1,0 +1,344 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Slideshow – v2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Import the Inter font from Google Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        /* Brand Colors */
+        .brand-blue { color: #1f2a52; }
+        .brand-teal { color: #00bec7; }
+        .brand-light-blue { background-color: #d2f0f0; }
+        .brand-grey { background-color: #abb5bf; }
+        .brand-dark-blue-text { color: #2e4d6b; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        .slideshow-container {
+            position: relative;
+            max-width: 100vw;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .mySlides {
+            position: relative;
+            display: none;
+            background-color: #d2f0f0;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 1000px;
+            height: 600px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+        }
+        .slide-content-wrapper {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: flex-start;
+            height: 100%;
+            width: 100%;
+            padding: 30px;
+            box-sizing: border-box;
+        }
+        .slide-left-panel {
+            flex: 0 0 350px;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 10px;
+            overflow: hidden;
+            background-color: #1f2a52;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+        }
+        .slide-left-panel img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+        .slide-right-panel {
+            position: relative;
+            flex: 1;
+            padding-left: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: flex-start;
+            height: 100%;
+        }
+        .slide-right-panel h1,
+        .slide-right-panel h2,
+        .slide-right-panel h3 {
+            color: #1f2a52; /* dark blue for all headings */
+        }
+        .slide-right-panel h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .slide-right-panel h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        .slide-right-panel p {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #2e4d6b;
+            margin-bottom: 15px;
+        }
+        .scrollbox {
+            max-height: calc(100% - 150px);
+            overflow-y: auto;
+            padding-right: 15px;
+            scrollbar-width: thin;
+            scrollbar-color: #abb5bf #d2f0f0;
+        }
+        .scrollbox::-webkit-scrollbar { width: 8px; border-radius: 10px; }
+        .scrollbox::-webkit-scrollbar-track { background: #d2f0f0; border-radius: 10px; }
+        .scrollbox::-webkit-scrollbar-thumb { background-color: #abb5bf; border-radius: 10px; border: 2px solid #d2f0f0; }
+
+        /* Right arrow */
+        .next {
+            cursor: pointer;
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            width: 56px;
+            height: 56px;
+            color: #ffffff;
+            font-weight: 800;
+            font-size: 24px;
+            transition: 0.2s ease;
+            border-radius: 50%;
+            user-select: none;
+            background-color: #00bec7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            text-decoration: none;
+        }
+        .next:hover { background-color: #1f2a52; transform: scale(1.04); }
+
+        /* Numbered dots */
+        .dots-container {
+            text-align: center;
+            position: absolute;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px;
+        }
+        .dot {
+            cursor: pointer;
+            height: 28px;
+            width: 28px;
+            background-color: #abb5bf;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            color: #2e4d6b;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .dot:hover { filter: brightness(0.95); }
+        .dot.active { background-color: #1f2a52; color: #ffffff; }
+
+        .fade { animation-name: fade; animation-duration: 1.5s; }
+        @keyframes fade { from {opacity: .4} to {opacity: 1} }
+
+        @media (max-width: 768px) {
+            .mySlides { flex-direction: column; height: auto; min-height: 80vh; }
+            .slide-content-wrapper { flex-direction: column; padding: 20px; height: auto; }
+            .slide-left-panel { flex: none; width: 100%; height: 250px; margin-bottom: 20px; }
+            .slide-right-panel { padding-left: 0; width: 100%; height: auto; }
+            .slide-right-panel h1 { font-size: 2rem; }
+            .slide-right-panel h2 { font-size: 1.2rem; }
+            .scrollbox { max-height: 300px; }
+            .dots-container { bottom: 40px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="slideshow-container">
+
+    <!-- Slide 1 -->
+    <div class="mySlides fade">
+        <div class="slide-content-wrapper">
+            <div class="slide-left-panel">
+                <img src="Adding content.png" alt="Adding Content">
+            </div>
+            <div class="slide-right-panel">
+                <h2>Step 1</h2>
+                <h1>Adding content</h1>
+                <p>Select the '+' sign and then add the documents you would like the AI to help you with.</p>
+                <img src="Adding content 2.png" alt="Message Gemini" class="w-full h-auto rounded-lg shadow-md mt-4 max-w-md">
+                <a class="next" onclick="plusSlides(1)">&#10095;</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 2 -->
+    <div class="mySlides fade">
+        <div class="slide-content-wrapper">
+            <div class="slide-left-panel">
+                <img src="Type of docs.png" alt="Type of Documents">
+            </div>
+            <div class="slide-right-panel">
+                <h2>Step 2</h2>
+                <h1>Type of docs</h1>
+                <div class="scrollbox">
+                    <p>You can upload different types of documents and formats into the prompt including:</p>
+                    <h3 class="font-medium text-lg mb-2">Text and Document Files</h3>
+                    <ul class="list-disc pl-5 text-sm brand-dark-blue-text mb-4">
+                        <li>.txt - Plain text files</li>
+                        <li>.doc / .docx - Microsoft Word documents</li>
+                        <li>.pdf - Portable Document Format</li>
+                        <li>.md - Markdown files</li>
+                    </ul>
+                    <h3 class="font-medium text-lg mb-2">Data Files</h3>
+                    <ul class="list-disc pl-5 text-sm brand-dark-blue-text mb-4">
+                        <li>.csv - Comma-separated values</li>
+                        <li>.xlsx - Microsoft Excel or Google Sheet files</li>
+                        <li>.json - JavaScript Object Notation</li>
+                        <li>.xml - Extensible Markup Language</li>
+                    </ul>
+                    <h3 class="font-medium text-lg mb-2">Image Files</h3>
+                    <ul class="list-disc pl-5 text-sm brand-dark-blue-text mb-4">
+                        <li>.jpg / .jpeg</li>
+                        <li>.png</li>
+                        <li>.gif</li>
+                        <li>.bmp</li>
+                        <li>.tiff</li>
+                    </ul>
+                    <h3 class="font-medium text-lg mb-2">Audio Files</h3>
+                    <ul class="list-disc pl-5 text-sm brand-dark-blue-text mb-4">
+                        <li>.mp3</li>
+                        <li>.wav</li>
+                        <li>.flac</li>
+                    </ul>
+                    <h3 class="font-medium text-lg mb-2">Video Files</h3>
+                    <ul class="list-disc pl-5 text-sm brand-dark-blue-text mb-4">
+                        <li>.mp4</li>
+                        <li>.avi</li>
+                        <li>.mov</li>
+                    </ul>
+                    <h3 class="font-medium text-lg mb-2">Presentation Files</h3>
+                    <ul class="list-disc pl-5 text-sm brand-dark-blue-text mb-4">
+                        <li>.ppt / .pptx - Microsoft PowerPoint</li>
+                    </ul>
+                    <h3 class="font-medium text-lg mb-2">Archive Files</h3>
+                    <ul class="list-disc pl-5 text-sm brand-dark-blue-text mb-4">
+                        <li>.zip</li>
+                        <li>.rar</li>
+                    </ul>
+                    <h3 class="font-medium text-lg mb-2">Code Files</h3>
+                    <ul class="list-disc pl-5 text-sm brand-dark-blue-text mb-4">
+                        <li>.py</li>
+                        <li>.js</li>
+                        <li>.html</li>
+                        <li>.css</li>
+                    </ul>
+                </div>
+                <a class="next" onclick="plusSlides(1)">&#10095;</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 3 -->
+    <div class="mySlides fade">
+        <div class="slide-content-wrapper">
+            <div class="slide-left-panel">
+                <img src="Webpage.png" alt="Webpage">
+            </div>
+            <div class="slide-right-panel">
+                <h2>Step 3</h2>
+                <h1>Webpage</h1>
+                <p>You can copy and paste a website link directly into the AI's prompt field. The AI will then read and process the content of that webpage, allowing you to ask questions, summarise, or generate new content based on the information it contains.<br><br>
+
+This is incredibly useful for referencing online articles, news, or specific web pages without manually copying all the text.</p>
+                <a class="next" onclick="plusSlides(1)">&#10095;</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 4 -->
+    <div class="mySlides fade">
+        <div class="slide-content-wrapper">
+            <div class="slide-left-panel">
+                <img src="Snipping tool or Screenshot.png" alt="Snipping Tool or Screenshot">
+            </div>
+            <div class="slide-right-panel">
+                <h2>Step 4</h2>
+                <h1>Snipping tool or Screenshot</h1>
+                <p>Sometimes, the information you need isn't easily copy-pasted or linked. A snipping tool (or screenshot feature) allows you to capture specific parts of your screen – an image, a table, a diagram, or even text within an image – and upload it as an image file. <br><br>
+
+The AI can then use its visual recognition and optical character recognition (OCR) capabilities to understand and interact with the content within that image.<br><br>
+
+Copy and paste the snip or screenshot into the AI and then interact with your content. You don’t need to save the image. You can snip or screenshot and paste it into Copilot.
+
+This is incredibly useful when you have taken a screenshot with a lot of text and you don’t feel like typing. Ask the AI to type the text in the image.</p>
+                <a class="next" onclick="plusSlides(1)">&#10095;</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="dots-container">
+        <span class="dot" onclick="currentSlide(1)">1</span>
+        <span class="dot" onclick="currentSlide(2)">2</span>
+        <span class="dot" onclick="currentSlide(3)">3</span>
+        <span class="dot" onclick="currentSlide(4)">4</span>
+    </div>
+</div>
+
+<script>
+    let slideIndex = 1;
+    showSlides(slideIndex);
+    function plusSlides(n) { showSlides(slideIndex += n); }
+    function currentSlide(n) { showSlides(slideIndex = n); }
+    function showSlides(n) {
+        let i;
+        const slides = document.getElementsByClassName("mySlides");
+        const dots = document.getElementsByClassName("dot");
+        if (n > slides.length) {slideIndex = 1}
+        if (n < 1) {slideIndex = slides.length}
+        for (i = 0; i < slides.length; i++) { slides[i].style.display = "none"; }
+        for (i = 0; i < dots.length; i++) { dots[i].classList.remove('active'); }
+        slides[slideIndex-1].style.display = "flex";
+        dots[slideIndex-1].classList.add('active');
+    }
+</script>
+
+</body>
+</html>
+
+
